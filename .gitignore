@@ -4,3 +4,5 @@
 .vscode/launch.json
 .vscode/ipch
 cloud/functions/node_modules
+ec_private.pem
+ec_public.pem
