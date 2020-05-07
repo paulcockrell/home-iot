@@ -5,6 +5,10 @@ Publish sensor metrics from independent Espruino Nano sensors over HC12 433Mhz r
 ## Development
 Developed with [platformio](https://platformio.org/) integrated into VS Code
 
+## Google IOT
+
+Under the cloud folder you will find the serverless functions to process the queue to store in a DB and a web site to view the data in graphs.
+
 ## View SPA to view graphs
 ```
 https://home-iot-20200429.web.app/
