@@ -1,5 +1,8 @@
+#include "esp8266_mqtt.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+
+#define PUBLISH_DELAY 60000
 
 const byte HC12RxdPin = 16;
 const byte HC12TxdPin = 14;
@@ -36,11 +39,22 @@ void setup() {
   Serial.begin(BAUD);
   HC12.begin(BAUD);
 
+  setupCloudIoT();
+
   Serial.println("Ready!");
   digitalWrite(LED_BUILTIN, OFF);
 }
 
 void loop() {
+  mqttClient->loop();
+  delay(10); // fixes some issues with wifi stability
+
+  if (!mqttClient->connected()) {
+    ESP.wdtDisable();
+    connect();
+    ESP.wdtEnable(0);
+  }
+
   while(HC12.available()) {
     digitalWrite(LED_BUILTIN, ON);
 
@@ -93,9 +107,16 @@ void loop() {
       HC12.println("Remote command executed"); // Ack
     } else {
       Serial.print(hc12ReadBufer); // Echo
+      publishTelemetry(hc12ReadBufer);
     }
 
     hc12ReadBufer = "";
     hc12End = false;
   }
+}
+
+// The MQTT callback function for commands and configuration updates
+// Place your message handler code here.
+void messageReceived(String &topic, String &payload) {
+  Serial.println("incoming: " + topic + " - " + payload);
 }
