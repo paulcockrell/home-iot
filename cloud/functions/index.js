@@ -14,8 +14,10 @@ exports.detectTelemetryEvents = functions.pubsub.topic('iot-topic').onPublish(
 
         // Firebase SDK for Cloud Functions has a 'json' helper property to decode
         // the message. We also round numbers to match DHT11 accuracy.
+        const sensorId = message.json.id;
         const temperature = message.json.t.toFixed(1);
         const humidity = Math.round(message.json.h);
+        const heatIndex = message.json.hic.toFixed(1);
         if((temperature < -40) || (temperature > 80) || (humidity < 0) || (humidity > 100)) return;
 
         // A Pub/Sub message has an 'attributes' property. This property has itself some properties,
@@ -23,16 +25,18 @@ exports.detectTelemetryEvents = functions.pubsub.topic('iot-topic').onPublish(
         const deviceId = message.attributes.deviceId;
 
         // The date the message was issued lies in the context object not in the message object:
-        const timestamp = context.timestamp
+        const timestamp = context.timestamp;
 
         // Log telemetry activity:
-        console.log(`Device=${deviceId}, Temperature=${temperature}°C, Humidity=${humidity}%, Timestamp=${timestamp}`);
+        console.log(`Hub=${deviceId}, Sensor=${sensorId}, Temperature=${temperature}°C, Humidity=${humidity}%, Heat Index=${heatIndex}°C, Timestamp=${timestamp}`);
 
         // Push to Firebase Realtime Database telemetry data sorted by device:
         return admin.database().ref(`devices-telemetry/${deviceId}`).push({
             timestamp: timestamp,
             temperature: temperature,
-            humidity: humidity
-        })
+            humidity: humidity,
+            heatIndex: heatIndex,
+            sensorId: sensorId,
+        });
     }
 );
